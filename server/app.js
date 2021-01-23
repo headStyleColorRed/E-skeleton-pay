@@ -3,7 +3,8 @@ const app = express();
 const port = 8894;
 const bodyParser = require("body-parser")
 const Cors = require("cors")
-const stripe = require('stripe')('YOUR PRIVATE KEY');
+const stripe = require('stripe')("");
+//('YOUR PRIVATE KEY');
 const mongoose = require("mongoose")
 const environment = process.env.NODE_ENV
 var dbLink = new String()
@@ -45,6 +46,7 @@ app.get("/", (req, res) => {
 	res.send("E-skeleton-pay is up and running! :D")
 })
 
+// Standard
 app.post("/add-product", async (req, res) => {
 	let body = req.body;
 	let isError = false;
@@ -103,7 +105,14 @@ app.post("/delete-product", async (req, res) => {
 	res.status(200).send({ code: "200", status: "Product deleted Succesfully" });
 });
 
-app.post('/checkout-product', async (req, res) => {
+app.post("/check-session-status", async (req, res) => {
+	let body = req.body
+	const session = await stripe.checkout.sessions.retrieve(body.sessionId);
+	res.send(session.payment_status)
+})
+
+// Prebuilt
+app.post('/checkout-prebuilt-product', async (req, res) => {
 	let body = req.body
 	let isError = false;
 
@@ -151,11 +160,68 @@ app.post('/checkout-product', async (req, res) => {
 
 });
 
-app.post("/check-session-status", async(req, res) => {
-	let body = req.body
-	const session = await stripe.checkout.sessions.retrieve(body.sessionId);
-	res.send(session.payment_status)
-})
+
+// Custom
+app.post("/pay", async (req, res) => {
+	const { paymentMethodId, paymentIntentId, items, currency, useStripeSdk } = req.body;
+	const itemId = items.length > 0 ? items[0].id : null
+	let isError = false
+
+	console.log(itemId);
+
+	let item = await Product.findOne({ id: itemId })
+		.then((res) => {
+			return res
+		})
+		.catch((err) => {
+			res.status(200).send({ code: "400", status: err });
+			isError = true;
+			console.log(err);
+		});
+	if (isError || !itemId) { return }
+
+	try {
+		let intent;
+		if (paymentMethodId) {
+			intent = await stripe.paymentIntents.create({
+				amount: item.unit_amount,
+				currency: currency,
+				payment_method: paymentMethodId,
+				confirmation_method: "manual",
+				confirm: true,
+				use_stripe_sdk: useStripeSdk,
+			});
+		} else if (paymentIntentId) {
+			intent = await stripe.paymentIntents.confirm(paymentIntentId);
+		}
+		res.send(generateResponse(intent));
+	} catch (e) {
+		res.send({ error: e.message });
+	}
+});
+
+const generateResponse = intent => {
+	switch (intent.status) {
+	  case "requires_action":
+	  case "requires_source_action":
+		return {
+		  requiresAction: true,
+		  clientSecret: intent.client_secret
+		};
+	  case "requires_payment_method":
+		  console.log("Requires payment method");
+	  case "requires_source":
+		return {
+		  error: "Your card was denied, please provide a new payment method"
+		};
+	  case "succeeded":
+		console.log("💰 Payment received!");
+		return { clientSecret: intent.client_secret };
+	}
+  };
+
+
+
 
 
 app.get("/products", async (req, res) => {					//	 B O R R A R
