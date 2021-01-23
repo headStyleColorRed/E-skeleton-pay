@@ -3,8 +3,7 @@ const app = express();
 const port = 8894;
 const bodyParser = require("body-parser")
 const Cors = require("cors")
-const stripe = require('stripe')("");
-//('YOUR PRIVATE KEY');
+const stripe = require('stripe')("YOUR PRIVATE KEY");
 const mongoose = require("mongoose")
 const environment = process.env.NODE_ENV
 var dbLink = new String()
@@ -161,7 +160,7 @@ app.post('/checkout-prebuilt-product', async (req, res) => {
 });
 
 
-// Custom
+// Custom card one payment
 app.post("/pay", async (req, res) => {
 	const { paymentMethodId, paymentIntentId, items, currency, useStripeSdk } = req.body;
 	const itemId = items.length > 0 ? items[0].id : null
