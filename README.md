@@ -13,7 +13,7 @@ You can search more of my E-skeleton's docker projects and try to combine them i
 
 ### API Use
 
-Down here you have example code for the events that this server provides:
+Down here you have serveral example code snippets for the events that this server provides:
 
 #### Add product
 
@@ -49,9 +49,8 @@ function deleteProductFromDB() {
 }
 ```
 
-#### Checkout Product
-In order to implement the checkout, you should first have a product created on the database, then call checkout-product
-with the designated id, the quantity to purchase and the redirectioning paths.
+#### Purchase with Stripe Prebuilt Checkout
+In order to implement the checkout, you should first have a product created on the database, then call checkout-product with the designated id, the quantity to purchase and the redirectioning paths.
 
 Card number with different output:
 *   Payment succeeds                    => 4242 4242 4242 4242
@@ -107,6 +106,35 @@ function verifySession() {
             .catch((error) => { console.error(error); });
 }
 ```
+
+#### Purchase with Custom Checkout
+Within this project, inside the webExample folder there is a prebuilt vue component that can be added as it is to your project.
+There are two steps to be done in order to user this file correctly
+1. Fill the "publicKey" variable on line 34
+2. Pass the prop "itemId" from the parent component
+3. Optional: Order amount can be added on the purchase button passing the prop "totalAmount"
+
+In order to implement the checkout, you should first have a product created on the database, then Pass the prop "itemId" with the designated id.
+The endpoints used on the server is ``` http://localhost:8894/pay ``` and it receives the stripe form data. It will send back the Stripe Intent.
+
+
+```js
+<template>
+  <div id="app">
+    <StripeCardPayment itemId="f24f24fqwvbhtg543e" totalAmount="15€"/>
+  </div>
+</template
+
+<script>
+import StripeCardPayment from './components/StripeCardPayment.vue'
+export default {
+  name: 'App',
+  components: {
+    StripeCardPayment
+  }
+}
+```
+
 
 ### Tech
 
