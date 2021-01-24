@@ -110,9 +110,10 @@ function verifySession() {
 #### Purchase with Custom Checkout
 Within this project, inside the webExample folder there is a prebuilt vue component that can be added as it is to your project.
 There are two steps to be done in order to user this file correctly
-1. Fill the "publicKey" variable on line 34
-2. Pass the prop "itemId" from the parent component
-3. Optional: Order amount can be added on the purchase button passing the prop "totalAmount"
+1. Add ```<script src="https://js.stripe.com/v3/"></script>``` To your index's <head>
+2. Fill the "publicKey" variable on line 34
+3. Pass the prop "itemId" from the parent component
+4. Optional: Order amount can be added on the purchase button passing the prop "totalAmount" 
 
 In order to implement the checkout, you should first have a product created on the database, then Pass the prop "itemId" with the designated id.
 The endpoints used on the server is ``` http://localhost:8894/pay ``` and it receives the stripe form data. It will send back the Stripe Intent.
